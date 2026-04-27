@@ -1,0 +1,49 @@
+[2026-04-27T10:22:32.771+0000] {local_task_job_runner.py:120} INFO - ::group::Pre task execution logs
+[2026-04-27T10:22:32.790+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: dq_etl_dag.source_schema_ok scheduled__2026-04-26T03:00:00+00:00 [queued]>
+[2026-04-27T10:22:32.794+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: dq_etl_dag.source_schema_ok scheduled__2026-04-26T03:00:00+00:00 [queued]>
+[2026-04-27T10:22:32.794+0000] {taskinstance.py:2306} INFO - Starting attempt 2 of 3
+[2026-04-27T10:22:32.800+0000] {taskinstance.py:2330} INFO - Executing <Task(SQLTableCheckOperator): source_schema_ok> on 2026-04-26 03:00:00+00:00
+[2026-04-27T10:22:32.804+0000] {standard_task_runner.py:64} INFO - Started process 2074 to run task
+[2026-04-27T10:22:32.808+0000] {standard_task_runner.py:90} INFO - Running: ['***', 'tasks', 'run', 'dq_etl_dag', 'source_schema_ok', 'scheduled__2026-04-26T03:00:00+00:00', '--job-id', '6', '--raw', '--subdir', 'DAGS_FOLDER/dq_etl_dag.py', '--cfg-path', '/tmp/tmpz2p5pco1']
+[2026-04-27T10:22:32.809+0000] {standard_task_runner.py:91} INFO - Job 6: Subtask source_schema_ok
+[2026-04-27T10:22:32.908+0000] {task_command.py:426} INFO - Running <TaskInstance: dq_etl_dag.source_schema_ok scheduled__2026-04-26T03:00:00+00:00 [running]> on host 0e9c1ff526a5
+[2026-04-27T10:22:33.073+0000] {taskinstance.py:2648} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='data-platform' AIRFLOW_CTX_DAG_ID='dq_etl_dag' AIRFLOW_CTX_TASK_ID='source_schema_ok' AIRFLOW_CTX_EXECUTION_DATE='2026-04-26T03:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='2' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2026-04-26T03:00:00+00:00'
+[2026-04-27T10:22:33.073+0000] {taskinstance.py:430} INFO - ::endgroup::
+[2026-04-27T10:22:33.078+0000] {crypto.py:82} WARNING - empty cryptography key - values will not be stored encrypted.
+[2026-04-27T10:22:33.079+0000] {base.py:84} INFO - Using connection ID 'warehouse' for task execution.
+[2026-04-27T10:22:33.080+0000] {base.py:84} INFO - Using connection ID 'warehouse' for task execution.
+[2026-04-27T10:22:33.084+0000] {sql.py:495} INFO - Running statement: SELECT check_name, check_result FROM (
+    SELECT 'required_columns_present' AS check_name, MIN(required_columns_present) AS check_result
+    FROM (SELECT CASE WHEN 
+                    transaction_id IS NOT NULL
+                    AND event_date IS NOT NULL
+                    AND amount IS NOT NULL
+                 THEN 1 ELSE 0 END AS required_columns_present
+          FROM source_db.raw_transactions WHERE event_date = '2026-04-26') AS sq
+    ) AS check_table, parameters: None
+[2026-04-27T10:22:33.087+0000] {sql.py:504} INFO - Rows affected: 1
+[2026-04-27T10:22:33.087+0000] {sql.py:696} INFO - Record:
+[('required_columns_present', None)]
+[2026-04-27T10:22:33.088+0000] {taskinstance.py:441} INFO - ::group::Post task execution logs
+[2026-04-27T10:22:33.088+0000] {taskinstance.py:2905} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.11/site-packages/airflow/models/taskinstance.py", line 465, in _execute_task
+    result = _execute_callable(context=context, **execute_callable_kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.11/site-packages/airflow/models/taskinstance.py", line 432, in _execute_callable
+    return execute_callable(context=context, **execute_callable_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.11/site-packages/airflow/models/baseoperator.py", line 401, in wrapper
+    return func(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.11/site-packages/airflow/providers/common/sql/operators/sql.py", line 700, in execute
+    self.checks[check]["success"] = _parse_boolean(str(result))
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.11/site-packages/airflow/providers/common/sql/operators/sql.py", line 54, in _parse_boolean
+    raise ValueError(f"{val!r} is not a boolean-like string value")
+ValueError: 'none' is not a boolean-like string value
+[2026-04-27T10:22:33.093+0000] {taskinstance.py:1206} INFO - Marking task as UP_FOR_RETRY. dag_id=dq_etl_dag, task_id=source_schema_ok, run_id=scheduled__2026-04-26T03:00:00+00:00, execution_date=20260426T030000, start_date=20260427T102232, end_date=20260427T102233
+[2026-04-27T10:22:33.100+0000] {standard_task_runner.py:110} ERROR - Failed to execute job 6 for task source_schema_ok ('none' is not a boolean-like string value; 2074)
+[2026-04-27T10:22:33.129+0000] {local_task_job_runner.py:243} INFO - Task exited with return code 1
+[2026-04-27T10:22:33.144+0000] {taskinstance.py:3503} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2026-04-27T10:22:33.145+0000] {local_task_job_runner.py:222} INFO - ::endgroup::

@@ -1,0 +1,75 @@
+[2026-04-27T10:27:33.706+0000] {local_task_job_runner.py:120} INFO - ::group::Pre task execution logs
+[2026-04-27T10:27:33.728+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: dq_etl_dag.source_has_data scheduled__2026-04-26T03:00:00+00:00 [queued]>
+[2026-04-27T10:27:33.732+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: dq_etl_dag.source_has_data scheduled__2026-04-26T03:00:00+00:00 [queued]>
+[2026-04-27T10:27:33.733+0000] {taskinstance.py:2306} INFO - Starting attempt 3 of 3
+[2026-04-27T10:27:33.740+0000] {taskinstance.py:2330} INFO - Executing <Task(SQLCheckOperator): source_has_data> on 2026-04-26 03:00:00+00:00
+[2026-04-27T10:27:33.743+0000] {standard_task_runner.py:64} INFO - Started process 3366 to run task
+[2026-04-27T10:27:33.746+0000] {standard_task_runner.py:90} INFO - Running: ['***', 'tasks', 'run', 'dq_etl_dag', 'source_has_data', 'scheduled__2026-04-26T03:00:00+00:00', '--job-id', '9', '--raw', '--subdir', 'DAGS_FOLDER/dq_etl_dag.py', '--cfg-path', '/tmp/tmpkkl45ke0']
+[2026-04-27T10:27:33.748+0000] {standard_task_runner.py:91} INFO - Job 9: Subtask source_has_data
+[2026-04-27T10:27:33.801+0000] {task_command.py:426} INFO - Running <TaskInstance: dq_etl_dag.source_has_data scheduled__2026-04-26T03:00:00+00:00 [running]> on host 0e9c1ff526a5
+[2026-04-27T10:27:34.025+0000] {taskinstance.py:2648} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='data-platform' AIRFLOW_CTX_DAG_ID='dq_etl_dag' AIRFLOW_CTX_TASK_ID='source_has_data' AIRFLOW_CTX_EXECUTION_DATE='2026-04-26T03:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='3' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2026-04-26T03:00:00+00:00'
+[2026-04-27T10:27:34.025+0000] {taskinstance.py:430} INFO - ::endgroup::
+[2026-04-27T10:27:34.031+0000] {sql.py:800} INFO - Executing SQL check: 
+            SELECT CASE
+                     WHEN COUNT(*) >= 1000 THEN 1
+                     ELSE 0
+                   END
+            FROM source_db.raw_transactions
+            WHERE event_date = '2026-04-26'
+        
+[2026-04-27T10:27:34.031+0000] {crypto.py:82} WARNING - empty cryptography key - values will not be stored encrypted.
+[2026-04-27T10:27:34.032+0000] {base.py:84} INFO - Using connection ID 'warehouse' for task execution.
+[2026-04-27T10:27:34.033+0000] {base.py:84} INFO - Using connection ID 'warehouse' for task execution.
+[2026-04-27T10:27:34.038+0000] {sql.py:495} INFO - Running statement: 
+            SELECT CASE
+                     WHEN COUNT(*) >= 1000 THEN 1
+                     ELSE 0
+                   END
+            FROM source_db.raw_transactions
+            WHERE event_date = '2026-04-26'
+        , parameters: None
+[2026-04-27T10:27:34.042+0000] {sql.py:504} INFO - Rows affected: 1
+[2026-04-27T10:27:34.042+0000] {sql.py:803} INFO - Record: (0,)
+[2026-04-27T10:27:34.042+0000] {taskinstance.py:441} INFO - ::group::Post task execution logs
+[2026-04-27T10:27:34.049+0000] {taskinstance.py:2905} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.11/site-packages/airflow/models/taskinstance.py", line 465, in _execute_task
+    result = _execute_callable(context=context, **execute_callable_kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.11/site-packages/airflow/models/taskinstance.py", line 432, in _execute_callable
+    return execute_callable(context=context, **execute_callable_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.11/site-packages/airflow/models/baseoperator.py", line 401, in wrapper
+    return func(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.11/site-packages/airflow/providers/common/sql/operators/sql.py", line 809, in execute
+    self._raise_exception(f"Test failed.\nQuery:\n{self.sql}\nResults:\n{records!s}")
+  File "/home/airflow/.local/lib/python3.11/site-packages/airflow/providers/common/sql/operators/sql.py", line 198, in _raise_exception
+    raise AirflowException(exception_string)
+airflow.exceptions.AirflowException: Test failed.
+Query:
+
+            SELECT CASE
+                     WHEN COUNT(*) >= 1000 THEN 1
+                     ELSE 0
+                   END
+            FROM source_db.raw_transactions
+            WHERE event_date = '2026-04-26'
+        
+Results:
+(0,)
+[2026-04-27T10:27:34.052+0000] {taskinstance.py:1206} INFO - Marking task as FAILED. dag_id=dq_etl_dag, task_id=source_has_data, run_id=scheduled__2026-04-26T03:00:00+00:00, execution_date=20260426T030000, start_date=20260427T102733, end_date=20260427T102734
+[2026-04-27T10:27:34.058+0000] {standard_task_runner.py:110} ERROR - Failed to execute job 9 for task source_has_data (Test failed.
+Query:
+
+            SELECT CASE
+                     WHEN COUNT(*) >= 1000 THEN 1
+                     ELSE 0
+                   END
+            FROM source_db.raw_transactions
+            WHERE event_date = '2026-04-26'
+        
+Results:
+(0,); 3366)
+[2026-04-27T10:27:34.089+0000] {local_task_job_runner.py:243} INFO - Task exited with return code 1
+[2026-04-27T10:27:34.096+0000] {local_task_job_runner.py:222} INFO - ::endgroup::

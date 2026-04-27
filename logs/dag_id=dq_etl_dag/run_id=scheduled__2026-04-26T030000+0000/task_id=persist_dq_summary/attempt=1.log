@@ -1,0 +1,65 @@
+[2026-04-27T10:27:38.842+0000] {local_task_job_runner.py:120} INFO - ::group::Pre task execution logs
+[2026-04-27T10:27:38.860+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: dq_etl_dag.persist_dq_summary scheduled__2026-04-26T03:00:00+00:00 [queued]>
+[2026-04-27T10:27:38.866+0000] {taskinstance.py:2076} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: dq_etl_dag.persist_dq_summary scheduled__2026-04-26T03:00:00+00:00 [queued]>
+[2026-04-27T10:27:38.866+0000] {taskinstance.py:2306} INFO - Starting attempt 1 of 3
+[2026-04-27T10:27:38.872+0000] {taskinstance.py:2330} INFO - Executing <Task(PythonOperator): persist_dq_summary> on 2026-04-26 03:00:00+00:00
+[2026-04-27T10:27:38.875+0000] {standard_task_runner.py:64} INFO - Started process 3373 to run task
+[2026-04-27T10:27:38.877+0000] {standard_task_runner.py:90} INFO - Running: ['***', 'tasks', 'run', 'dq_etl_dag', 'persist_dq_summary', 'scheduled__2026-04-26T03:00:00+00:00', '--job-id', '10', '--raw', '--subdir', 'DAGS_FOLDER/dq_etl_dag.py', '--cfg-path', '/tmp/tmpl03x7wbd']
+[2026-04-27T10:27:38.879+0000] {standard_task_runner.py:91} INFO - Job 10: Subtask persist_dq_summary
+[2026-04-27T10:27:38.913+0000] {task_command.py:426} INFO - Running <TaskInstance: dq_etl_dag.persist_dq_summary scheduled__2026-04-26T03:00:00+00:00 [running]> on host 0e9c1ff526a5
+[2026-04-27T10:27:39.050+0000] {taskinstance.py:2648} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='data-platform' AIRFLOW_CTX_DAG_ID='dq_etl_dag' AIRFLOW_CTX_TASK_ID='persist_dq_summary' AIRFLOW_CTX_EXECUTION_DATE='2026-04-26T03:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2026-04-26T03:00:00+00:00'
+[2026-04-27T10:27:39.051+0000] {taskinstance.py:430} INFO - ::endgroup::
+[2026-04-27T10:27:39.056+0000] {crypto.py:82} WARNING - empty cryptography key - values will not be stored encrypted.
+[2026-04-27T10:27:39.056+0000] {base.py:84} INFO - Using connection ID 'warehouse' for task execution.
+[2026-04-27T10:27:39.057+0000] {base.py:84} INFO - Using connection ID 'warehouse' for task execution.
+[2026-04-27T10:27:39.061+0000] {sql.py:495} INFO - Running statement: 
+            SELECT
+                'target_row_count'                             AS metric_name,
+                COUNT(*)                                        AS metric_value
+            FROM ***.fact_transactions WHERE event_date = '2026-04-26'
+            UNION ALL
+            SELECT 'target_distinct_customers', COUNT(DISTINCT customer_id)
+            FROM ***.fact_transactions WHERE event_date = '2026-04-26'
+            UNION ALL
+            SELECT 'target_sum_amount', COALESCE(SUM(amount),0)
+            FROM ***.fact_transactions WHERE event_date = '2026-04-26'
+            UNION ALL
+            SELECT 'target_null_customer_ratio',
+                   SUM(CASE WHEN customer_id IS NULL THEN 1 ELSE 0 END)*1.0/NULLIF(COUNT(*),0)
+            FROM ***.fact_transactions WHERE event_date = '2026-04-26'
+        , parameters: None
+[2026-04-27T10:27:39.062+0000] {sql.py:504} INFO - Rows affected: 4
+[2026-04-27T10:27:39.063+0000] {base.py:84} INFO - Using connection ID 'warehouse' for task execution.
+[2026-04-27T10:27:39.066+0000] {sql.py:495} INFO - Running statement: 
+                INSERT INTO ***.dq_metrics
+                    (dag_id, run_id, run_date, metric_name, metric_value, status, created_at)
+                VALUES (%s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                , parameters: ('dq_etl_dag', 'scheduled__2026-04-26T03:00:00+00:00', '2026-04-26', 'target_row_count', 0.0, 'OK')
+[2026-04-27T10:27:39.067+0000] {sql.py:504} INFO - Rows affected: 1
+[2026-04-27T10:27:39.068+0000] {base.py:84} INFO - Using connection ID 'warehouse' for task execution.
+[2026-04-27T10:27:39.071+0000] {sql.py:495} INFO - Running statement: 
+                INSERT INTO ***.dq_metrics
+                    (dag_id, run_id, run_date, metric_name, metric_value, status, created_at)
+                VALUES (%s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                , parameters: ('dq_etl_dag', 'scheduled__2026-04-26T03:00:00+00:00', '2026-04-26', 'target_distinct_customers', 0.0, 'OK')
+[2026-04-27T10:27:39.072+0000] {sql.py:504} INFO - Rows affected: 1
+[2026-04-27T10:27:39.073+0000] {base.py:84} INFO - Using connection ID 'warehouse' for task execution.
+[2026-04-27T10:27:39.076+0000] {sql.py:495} INFO - Running statement: 
+                INSERT INTO ***.dq_metrics
+                    (dag_id, run_id, run_date, metric_name, metric_value, status, created_at)
+                VALUES (%s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                , parameters: ('dq_etl_dag', 'scheduled__2026-04-26T03:00:00+00:00', '2026-04-26', 'target_sum_amount', 0.0, 'OK')
+[2026-04-27T10:27:39.076+0000] {sql.py:504} INFO - Rows affected: 1
+[2026-04-27T10:27:39.077+0000] {base.py:84} INFO - Using connection ID 'warehouse' for task execution.
+[2026-04-27T10:27:39.081+0000] {sql.py:495} INFO - Running statement: 
+                INSERT INTO ***.dq_metrics
+                    (dag_id, run_id, run_date, metric_name, metric_value, status, created_at)
+                VALUES (%s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                , parameters: ('dq_etl_dag', 'scheduled__2026-04-26T03:00:00+00:00', '2026-04-26', 'target_null_customer_ratio', 0.0, 'OK')
+[2026-04-27T10:27:39.081+0000] {sql.py:504} INFO - Rows affected: 1
+[2026-04-27T10:27:39.082+0000] {python.py:237} INFO - Done. Returned value was: None
+[2026-04-27T10:27:39.082+0000] {taskinstance.py:441} INFO - ::group::Post task execution logs
+[2026-04-27T10:27:39.088+0000] {taskinstance.py:1206} INFO - Marking task as SUCCESS. dag_id=dq_etl_dag, task_id=persist_dq_summary, run_id=scheduled__2026-04-26T03:00:00+00:00, execution_date=20260426T030000, start_date=20260427T102738, end_date=20260427T102739
+[2026-04-27T10:27:39.137+0000] {local_task_job_runner.py:243} INFO - Task exited with return code 0
+[2026-04-27T10:27:39.153+0000] {taskinstance.py:3503} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2026-04-27T10:27:39.157+0000] {local_task_job_runner.py:222} INFO - ::endgroup::
