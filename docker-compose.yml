@@ -1,0 +1,127 @@
+# --------------------------------------------------------------------------
+# Minimal Airflow + DQ sandbox
+# --------------------------------------------------------------------------
+# Servisler:
+#   airflow-db   : Airflow kendi metadatası için Postgres
+#   warehouse-db : Senin source + target + dq_metrics için Postgres
+#   airflow-init : İlk açılışta migration + admin user
+#   airflow      : webserver + scheduler (LocalExecutor, tek container)
+#   pgadmin      : (opsiyonel) tabloları gözle görmek için
+#
+# Kullanım:
+#   docker compose up -d
+#   -> Airflow UI:   http://localhost:8080  (admin / admin)
+#   -> pgAdmin:      http://localhost:5050  (admin@local / admin)
+#
+# DAG dosyasını ./dags/ altına, dq_etl_dag.py olarak koy.
+# --------------------------------------------------------------------------
+
+x-airflow-common: &airflow-common
+  image: apache/airflow:2.9.3-python3.11
+  environment: &airflow-common-env
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-db:5432/airflow
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    AIRFLOW__CORE__FERNET_KEY: ""
+    AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "true"
+    # DAG'da kullandığımız "warehouse" connection'ını env ile inject ediyoruz
+    AIRFLOW_CONN_WAREHOUSE: postgres://dwh:dwh@warehouse-db:5432/warehouse
+  volumes:
+    - ./dags:/opt/airflow/dags
+    - ./logs:/opt/airflow/logs
+    - ./plugins:/opt/airflow/plugins
+  depends_on:
+    airflow-db:
+      condition: service_healthy
+    warehouse-db:
+      condition: service_healthy
+
+services:
+
+  # -------------------------------------------------------------------------
+  # Airflow metadata DB
+  # -------------------------------------------------------------------------
+  airflow-db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - airflow-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 5s
+      retries: 10
+
+  # -------------------------------------------------------------------------
+  # Warehouse DB (source + target + dq_metrics)
+  # -------------------------------------------------------------------------
+  warehouse-db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: dwh
+      POSTGRES_PASSWORD: dwh
+      POSTGRES_DB: warehouse
+    ports:
+      - "5433:5432"   # host'tan erişmek istersen
+    volumes:
+      - warehouse-db-data:/var/lib/postgresql/data
+      - ./init-warehouse.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "dwh"]
+      interval: 5s
+      retries: 10
+
+  # -------------------------------------------------------------------------
+  # Airflow init (migrate + admin user)
+  # -------------------------------------------------------------------------
+  airflow-init:
+    <<: *airflow-common
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        airflow db migrate
+        airflow users create \
+          --username admin --password admin \
+          --firstname Air --lastname Flow \
+          --role Admin --email admin@local || true
+
+  # -------------------------------------------------------------------------
+  # Airflow webserver + scheduler (LocalExecutor, tek container)
+  # -------------------------------------------------------------------------
+  airflow:
+    <<: *airflow-common
+    command: bash -c "airflow scheduler & exec airflow webserver"
+    ports:
+      - "8080:8080"
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+      airflow-db:
+        condition: service_healthy
+      warehouse-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 15s
+      retries: 20
+
+  # -------------------------------------------------------------------------
+  # pgAdmin (opsiyonel, tabloları gözle görmek için)
+  # -------------------------------------------------------------------------
+  pgadmin:
+    image: dpage/pgadmin4:8
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@local.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    ports:
+      - "5050:80"
+    depends_on:
+      - warehouse-db
+
+volumes:
+  airflow-db-data:
+  warehouse-db-data:
